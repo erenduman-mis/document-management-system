@@ -1,0 +1,173 @@
+﻿@model List<DocumentManagementSystem.Controllers.AuditLogListViewModel>
+
+@{
+    ViewData["Title"] = "Audit Logs";
+
+    var search = ViewBag.Search as string;
+    var actionType = ViewBag.ActionType as string;
+    var actionTypes = ViewBag.ActionTypes as List<string> ?? new List<string>();
+
+    var currentPage = ViewBag.Page as int? ?? 1;
+    var pageSize = ViewBag.PageSize as int? ?? 15;
+    var totalItems = ViewBag.TotalItems as int? ?? 0;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+
+    var firstItem = totalItems == 0 ? 0 : ((currentPage - 1) * pageSize) + 1;
+    var lastItem = Math.Min(currentPage * pageSize, totalItems);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">📋 Audit Logs</h2>
+        <div class="text-muted">
+            Showing @firstItem - @lastItem of @totalItems system activities
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label">Search</label>
+                <input type="text"
+                       name="search"
+                       value="@search"
+                       class="form-control"
+                       placeholder="User, document, IP address or details..." />
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Action Type</label>
+                <select name="actionType" class="form-select">
+                    <option value="">All Actions</option>
+
+                    @foreach (var item in actionTypes)
+                    {
+                        <option value="@item" selected="@(actionType == item)">
+                            @item
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    🔍 Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Time</th>
+                    <th>Action</th>
+                    <th>User</th>
+                    <th>Document</th>
+                    <th>IP Address</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No audit logs found.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var log in Model)
+                    {
+                        var badgeClass = log.ActionType switch
+                        {
+                            "Login" => "bg-success",
+                            "Logout" => "bg-secondary",
+                            "Upload" => "bg-primary",
+                            "Delete" => "bg-danger",
+                            "StatusChange" => "bg-info",
+                            "Download" => "bg-dark",
+                            "View" => "bg-dark",
+                            _ => "bg-secondary"
+                        };
+
+                        <tr>
+                            <td>@log.Timestamp.ToString("dd MMM yyyy HH:mm")</td>
+
+                            <td>
+                                <span class="badge @badgeClass">
+                                    @log.ActionType
+                                </span>
+                            </td>
+
+                            <td>
+                                <strong>@log.UserName</strong>
+                                <div class="text-muted small">@log.UserEmail</div>
+                            </td>
+
+                            <td>@log.DocumentTitle</td>
+
+                            <td>@log.IpAddress</td>
+
+                            <td>@log.Details</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (totalItems > 0)
+    {
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <div class="text-muted">
+                Page @currentPage of @totalPages
+            </div>
+
+            <nav>
+                <ul class="pagination mb-0">
+                    <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-search="@search"
+                           asp-route-actionType="@actionType"
+                           asp-route-page="@(currentPage - 1)">
+                            Previous
+                        </a>
+                    </li>
+
+                    @for (var i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-search="@search"
+                               asp-route-actionType="@actionType"
+                               asp-route-page="@i">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-search="@search"
+                           asp-route-actionType="@actionType"
+                           asp-route-page="@(currentPage + 1)">
+                            Next
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>

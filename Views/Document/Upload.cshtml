@@ -1,0 +1,66 @@
+﻿@{
+    ViewData["Title"] = "Upload Document";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>⬆️ Upload Document</h2>
+    <a asp-action="Index" class="btn btn-outline-secondary">← Back to Documents</a>
+</div>
+
+<div class="card shadow" style="max-width: 700px;">
+    <div class="card-body p-4">
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger">@ViewBag.Error</div>
+        }
+
+        <form method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+
+            <div class="mb-3">
+                <label class="form-label">Document Title <span class="text-danger">*</span></label>
+                <input type="text" name="title" class="form-control" placeholder="e.g. Boeing 737 AMM Chapter 05" required />
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Document Type <span class="text-danger">*</span></label>
+                    <select name="documentType" class="form-select" required>
+                        <option value="">Select type...</option>
+                        <option value="AMM">AMM - Aircraft Maintenance Manual</option>
+                        <option value="SB">SB - Service Bulletin</option>
+                        <option value="AD">AD - Airworthiness Directive</option>
+                        <option value="QA">QA - Quality Document</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Aircraft Type <span class="text-danger">*</span></label>
+                    <select name="aircraftType" class="form-select" required>
+                        <option value="">Select aircraft...</option>
+                        <option value="Boeing 737">Boeing 737</option>
+                        <option value="Boeing 777">Boeing 777</option>
+                        <option value="Airbus A320">Airbus A320</option>
+                        <option value="Airbus A330">Airbus A330</option>
+                        <option value="General">General</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">ATA Chapter <span class="text-danger">*</span></label>
+                <input type="text" name="ataChapter" class="form-control" placeholder="e.g. ATA 05 - Time Limits" required />
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">File <span class="text-danger">*</span></label>
+                <input type="file" name="file" class="form-control" accept=".pdf,.docx,.xlsx" required />
+                <div class="form-text">Allowed formats: PDF, DOCX, XLSX</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                Upload Document
+            </button>
+        </form>
+    </div>
+</div>

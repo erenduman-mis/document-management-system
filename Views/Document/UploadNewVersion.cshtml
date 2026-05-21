@@ -1,0 +1,50 @@
+﻿@model DocumentManagementSystem.Models.Document
+
+@{
+    ViewData["Title"] = "Upload New Version";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>⬆️ Upload New Version</h2>
+        <p class="text-muted mb-0">@Model.Title</p>
+    </div>
+
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+        ← Back to Details
+    </a>
+</div>
+
+<div class="card shadow" style="max-width: 700px;">
+    <div class="card-body p-4">
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger">@ViewBag.Error</div>
+        }
+
+        <div class="alert alert-info">
+            This will create a new version and mark previous versions as obsolete.
+            The document status will return to <strong>Draft</strong>.
+        </div>
+
+        <form method="post" enctype="multipart/form-data" asp-action="UploadNewVersion" asp-route-id="@Model.Id">
+            @Html.AntiForgeryToken()
+
+            <div class="mb-3">
+                <label class="form-label">Document</label>
+                <input type="text" class="form-control" value="@Model.Title" disabled />
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">New Version File <span class="text-danger">*</span></label>
+                <input type="file" name="file" class="form-control" accept=".pdf,.docx,.xlsx" required />
+                <div class="form-text">Allowed formats: PDF, DOCX, XLSX</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                Upload New Version
+            </button>
+        </form>
+    </div>
+</div>

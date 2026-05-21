@@ -1,0 +1,293 @@
+﻿@model List<DocumentManagementSystem.Models.Document>
+
+@{
+    ViewData["Title"] = "Documents";
+
+    var search = ViewBag.Search as string;
+    var type = ViewBag.Type as string;
+    var status = ViewBag.Status as string;
+
+    var sortBy = ViewBag.SortBy as string ?? "created";
+    var sortOrder = ViewBag.SortOrder as string ?? "desc";
+
+    var currentPage = ViewBag.Page as int? ?? 1;
+    var pageSize = ViewBag.PageSize as int? ?? 10;
+    var totalItems = ViewBag.TotalItems as int? ?? 0;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+
+    var titleSortOrder = sortBy == "title" && sortOrder == "asc" ? "desc" : "asc";
+    var typeSortOrder = sortBy == "type" && sortOrder == "asc" ? "desc" : "asc";
+    var aircraftSortOrder = sortBy == "aircraft" && sortOrder == "asc" ? "desc" : "asc";
+    var statusSortOrder = sortBy == "status" && sortOrder == "asc" ? "desc" : "asc";
+    var createdSortOrder = sortBy == "created" && sortOrder == "asc" ? "desc" : "asc";
+
+    var titleIcon = sortBy == "title" ? (sortOrder == "asc" ? "↑" : "↓") : "↕";
+    var typeIcon = sortBy == "type" ? (sortOrder == "asc" ? "↑" : "↓") : "↕";
+    var aircraftIcon = sortBy == "aircraft" ? (sortOrder == "asc" ? "↑" : "↓") : "↕";
+    var statusIcon = sortBy == "status" ? (sortOrder == "asc" ? "↑" : "↓") : "↕";
+    var createdIcon = sortBy == "created" ? (sortOrder == "asc" ? "↑" : "↓") : "↕";
+
+    var firstItem = totalItems == 0 ? 0 : ((currentPage - 1) * pageSize) + 1;
+    var lastItem = Math.Min(currentPage * pageSize, totalItems);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">📄 Documents</h2>
+        <div class="text-muted">
+            Showing @firstItem - @lastItem of @totalItems documents
+        </div>
+    </div>
+
+    @if (User.IsInRole("Admin") || User.IsInRole("Engineer") || User.IsInRole("Quality"))
+    {
+        <a asp-action="Upload" class="btn btn-primary">
+            ⬆️ Upload Document
+        </a>
+    }
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <input type="hidden" name="sortBy" value="@sortBy" />
+            <input type="hidden" name="sortOrder" value="@sortOrder" />
+
+            <div class="col-md-4">
+                <label class="form-label">Search</label>
+                <input type="text"
+                       name="search"
+                       value="@search"
+                       class="form-control"
+                       placeholder="Title or aircraft type..." />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Document Type</label>
+                <select name="type" class="form-select">
+                    <option value="">All Types</option>
+                    <option value="AMM" selected="@(type == "AMM")">AMM</option>
+                    <option value="SB" selected="@(type == "SB")">Service Bulletin (SB)</option>
+                    <option value="AD" selected="@(type == "AD")">Airworthiness Directive (AD)</option>
+                    <option value="QA" selected="@(type == "QA")">Quality Document (QA)</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="Draft" selected="@(status == "Draft")">Draft</option>
+                    <option value="InReview" selected="@(status == "InReview")">In Review</option>
+                    <option value="Approved" selected="@(status == "Approved")">Approved</option>
+                    <option value="Rejected" selected="@(status == "Rejected")">Rejected</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    🔍 Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+
+                    <th>
+                        <a class="text-white text-decoration-none"
+                           asp-action="Index"
+                           asp-route-search="@search"
+                           asp-route-type="@type"
+                           asp-route-status="@status"
+                           asp-route-sortBy="title"
+                           asp-route-sortOrder="@titleSortOrder"
+                           asp-route-page="1">
+                            Title @titleIcon
+                        </a>
+                    </th>
+
+                    <th>
+                        <a class="text-white text-decoration-none"
+                           asp-action="Index"
+                           asp-route-search="@search"
+                           asp-route-type="@type"
+                           asp-route-status="@status"
+                           asp-route-sortBy="type"
+                           asp-route-sortOrder="@typeSortOrder"
+                           asp-route-page="1">
+                            Type @typeIcon
+                        </a>
+                    </th>
+
+                    <th>
+                        <a class="text-white text-decoration-none"
+                           asp-action="Index"
+                           asp-route-search="@search"
+                           asp-route-type="@type"
+                           asp-route-status="@status"
+                           asp-route-sortBy="aircraft"
+                           asp-route-sortOrder="@aircraftSortOrder"
+                           asp-route-page="1">
+                            Aircraft @aircraftIcon
+                        </a>
+                    </th>
+
+                    <th>ATA Chapter</th>
+
+                    <th>
+                        <a class="text-white text-decoration-none"
+                           asp-action="Index"
+                           asp-route-search="@search"
+                           asp-route-type="@type"
+                           asp-route-status="@status"
+                           asp-route-sortBy="status"
+                           asp-route-sortOrder="@statusSortOrder"
+                           asp-route-page="1">
+                            Status @statusIcon
+                        </a>
+                    </th>
+
+                    <th>
+                        <a class="text-white text-decoration-none"
+                           asp-action="Index"
+                           asp-route-search="@search"
+                           asp-route-type="@type"
+                           asp-route-status="@status"
+                           asp-route-sortBy="created"
+                           asp-route-sortOrder="@createdSortOrder"
+                           asp-route-page="1">
+                            Created @createdIcon
+                        </a>
+                    </th>
+
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            No documents found.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var doc in Model)
+                    {
+                        <tr>
+                            <td>@doc.Id</td>
+
+                            <td>
+                                <strong>@doc.Title</strong>
+                            </td>
+
+                            <td>
+                                <span class="badge bg-secondary">@doc.DocumentType</span>
+                            </td>
+
+                            <td>@doc.AircraftType</td>
+
+                            <td>@doc.ATAChapter</td>
+
+                            <td>
+                                @switch (doc.Status)
+                                {
+                                    case DocumentManagementSystem.Models.DocumentStatus.Approved:
+                                        <span class="badge bg-success">Approved</span>
+                                        break;
+
+                                    case DocumentManagementSystem.Models.DocumentStatus.Draft:
+                                        <span class="badge bg-warning text-dark">Draft</span>
+                                        break;
+
+                                    case DocumentManagementSystem.Models.DocumentStatus.InReview:
+                                        <span class="badge bg-info">In Review</span>
+                                        break;
+
+                                    default:
+                                        <span class="badge bg-danger">Rejected</span>
+                                        break;
+                                }
+                            </td>
+
+                            <td>@doc.CreatedAt.ToString("dd MMM yyyy")</td>
+
+                            <td>
+                                <a asp-action="Details"
+                                   asp-route-id="@doc.Id"
+                                   class="btn btn-sm btn-outline-primary">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (totalItems > 0)
+    {
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <div class="text-muted">
+                Page @currentPage of @totalPages
+            </div>
+
+            <nav>
+                <ul class="pagination mb-0">
+                    <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-search="@search"
+                           asp-route-type="@type"
+                           asp-route-status="@status"
+                           asp-route-sortBy="@sortBy"
+                           asp-route-sortOrder="@sortOrder"
+                           asp-route-page="@(currentPage - 1)">
+                            Previous
+                        </a>
+                    </li>
+
+                    @for (var i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-search="@search"
+                               asp-route-type="@type"
+                               asp-route-status="@status"
+                               asp-route-sortBy="@sortBy"
+                               asp-route-sortOrder="@sortOrder"
+                               asp-route-page="@i">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-search="@search"
+                           asp-route-type="@type"
+                           asp-route-status="@status"
+                           asp-route-sortBy="@sortBy"
+                           asp-route-sortOrder="@sortOrder"
+                           asp-route-page="@(currentPage + 1)">
+                            Next
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>

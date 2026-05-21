@@ -1,0 +1,203 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+
+    var recentDocuments = ViewBag.RecentDocuments as List<DocumentManagementSystem.Models.Document>
+        ?? new List<DocumentManagementSystem.Models.Document>();
+
+    var documentTypeLabels = ViewBag.DocumentTypeLabels as List<string>
+        ?? new List<string>();
+
+    var documentTypeCounts = ViewBag.DocumentTypeCounts as List<int>
+        ?? new List<int>();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📊 Dashboard</h2>
+    <span class="text-muted">Welcome, @User.Identity?.Name</span>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="fs-2 fw-bold">@ViewBag.TotalDocuments</div>
+                        <div>Total Documents</div>
+                    </div>
+                    <div class="fs-1 opacity-50">📄</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-success shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="fs-2 fw-bold">@ViewBag.ActiveDocuments</div>
+                        <div>Approved Documents</div>
+                    </div>
+                    <div class="fs-1 opacity-50">✅</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-info shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="fs-2 fw-bold">@ViewBag.TotalUsers</div>
+                        <div>Active Users</div>
+                    </div>
+                    <div class="fs-1 opacity-50">👤</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-warning shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="fs-2 fw-bold">@ViewBag.TotalVersions</div>
+                        <div>Document Versions</div>
+                    </div>
+                    <div class="fs-1 opacity-50">🔄</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-5">
+        <div class="card shadow h-100">
+            <div class="card-header">
+                <h5 class="mb-0">📈 Document Type Distribution</h5>
+            </div>
+
+            <div class="card-body">
+                @if (documentTypeCounts.Sum() == 0)
+                {
+                    <div class="text-center text-muted py-5">
+                        No document data yet.
+                    </div>
+                }
+                else
+                {
+                    <canvas id="documentTypeChart" style="max-height: 320px;"></canvas>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card shadow h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">📋 Recent Documents</h5>
+                <a asp-controller="Document" asp-action="Index" class="btn btn-sm btn-primary">View All</a>
+            </div>
+
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Aircraft</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (recentDocuments.Count > 0)
+                        {
+                            foreach (var doc in recentDocuments)
+                            {
+                                <tr>
+                                    <td>@doc.Title</td>
+                                    <td><span class="badge bg-secondary">@doc.DocumentType</span></td>
+                                    <td>@doc.AircraftType</td>
+                                    <td>
+                                        @if (doc.Status == DocumentManagementSystem.Models.DocumentStatus.Approved)
+                                        {
+                                            <span class="badge bg-success">Approved</span>
+                                        }
+                                        else if (doc.Status == DocumentManagementSystem.Models.DocumentStatus.Draft)
+                                        {
+                                            <span class="badge bg-warning text-dark">Draft</span>
+                                        }
+                                        else if (doc.Status == DocumentManagementSystem.Models.DocumentStatus.InReview)
+                                        {
+                                            <span class="badge bg-info">In Review</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Rejected</span>
+                                        }
+                                    </td>
+                                    <td>@doc.CreatedAt.ToString("dd MMM yyyy")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    No documents yet.
+                                    <a asp-controller="Document" asp-action="Upload">Upload your first document</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const documentTypeLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(documentTypeLabels));
+        const documentTypeCounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(documentTypeCounts));
+
+        const chartElement = document.getElementById('documentTypeChart');
+
+        if (chartElement) {
+        new Chart(chartElement, {
+        type: 'doughnut',
+        data: {
+        labels: documentTypeLabels,
+        datasets: [{
+        data: documentTypeCounts,
+        backgroundColor: [
+        '#0d6efd',
+        '#198754',
+        '#ffc107',
+        '#dc3545'
+        ],
+        borderWidth: 2,
+        borderColor: '#ffffff'
+        }]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+        legend: {
+        position: 'bottom'
+        }
+        }
+        }
+        });
+        }
+    </script>
+}
